@@ -1,8 +1,8 @@
-from flask import Flask, request, render_template
-from flask_socketio import SocketIO, emit
-
+import os
 import openai
 
+from flask import Flask, request, render_template
+from flask_socketio import SocketIO, emit
 from tenacity import (
     retry,
     stop_after_attempt,
@@ -10,13 +10,15 @@ from tenacity import (
 )  # for exponential backoff
 
 
+api_key = os.environ.get("OPENAI_API_KEY")
+
+if api_key is None:
+    print("OpenAI API key is not set. Please set the OPENAI_API_KEY environment variable.")
+    exit
+
 @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
 def completion_with_backoff(**kwargs):
     return openai.ChatCompletion.create(**kwargs)
-
-from flask import Flask, request, render_template
-from flask_socketio import SocketIO, emit
-import openai
 
 MODEL = 'gpt-3.5-turbo'
 
