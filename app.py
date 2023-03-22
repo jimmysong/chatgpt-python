@@ -2,7 +2,7 @@ import os
 import openai
 
 from flask import Flask, request, render_template
-from flask_cors import CORS, cross_origin
+from flask_httpauth import HTTPBasicAuth
 from flask_socketio import SocketIO, emit
 from tenacity import (
     retry,
@@ -29,13 +29,21 @@ MODEL = 'gpt-3.5-turbo'
 
 # Create Flask app and SocketIO instance
 app = Flask(__name__)
-CORS(app)
+auth = HTTPBasicAuth()
 app.config['SECRET_KEY'] = socket_key
-socketio = SocketIO(app)
+socketio = SocketIO(app, cors_allowed_origins='*')
+
+@auth.verify_password
+def verify_password(username, password):
+    if username == 'kids' and password == 'iloveschool!':
+        return True
+    else:
+        return False
+
 
 # Define event handler for generating text
 @socketio.on('generate_text')
-@cross_origin(origin='*')
+@auth.login_required
 def handle_generate_text(input_text):
     messages = [
         {"role": "system", "content": "You are an explainer for a 10-year old kid."},
@@ -52,6 +60,7 @@ def handle_generate_text(input_text):
 
 # Define route for index page
 @app.route('/')
+@auth.login_required
 def index():
     return render_template('index.html')
 
