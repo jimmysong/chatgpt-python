@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ChatGPT</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='main.css') }}">
+</head>
+<body onload="loadHistory()">
+    <div class="container">
+        <div class="input">
+            <h1>Ask ChatGPT a Question!</h1>
+            <form id="input-form">
+                <label for="text">Question:</label>
+                <textarea id="text" name="text" style="width: 100%; height: 200px"></textarea>
+                <input type="submit" value="Submit">
+            </form>
+        </div>
+        <div class="output">
+            <div id="generated-text"></div>
+        </div>
+    </div>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.3/socket.io.js"></script>
+    <script>
+        var socket = io.connect(location.protocol + '//' + document.domain + ':' + location.port);
+
+        // Send generate_text event when form is submitted
+        document.getElementById('input-form').onsubmit = function() {
+            var inputText = document.getElementById('text').value;
+            socket.emit('generate_text', inputText);
+            var generatedTextDiv = document.getElementById('generated-text');
+            generatedTextDiv.innerHTML += '<div class="question">' + inputText + '</div>';
+            
+            document.getElementById('text').value = '';
+            return false;
+        }
+
+        // Update page with generated text when received
+        socket.on('generated_text', function(generatedText) {
+            var generatedTextDiv = document.getElementById('generated-text');
+            generatedTextDiv.innerHTML += '<div class="answer">' + generatedText + '</div>';
+            localStorage.setItem('gptHistory', generatedTextDiv.innerHTML);
+            delayScroll();
+        });
+        function delayScroll() {
+            var generatedTextDiv = document.getElementById('generated-text');
+            const lastChild = generatedTextDiv.lastElementChild;
+            lastChild.scrollIntoView({behavior: "smooth", block: "end", inline: "nearest"});
+        }
+        function loadHistory() {
+            var generatedTextDiv = document.getElementById('generated-text');
+            generatedTextDiv.innerHTML = localStorage.getItem('gptHistory');
+            delayScroll();
+        }
+    </script>
+</body>
+</html>
