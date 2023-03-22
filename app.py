@@ -13,6 +13,8 @@ from tenacity import (
 
 api_key = os.environ.get("OPENAI_API_KEY")
 socket_key = os.environ.get("SOCKET_KEY")
+env_username = os.environ.get("HTTP_USERNAME")
+env_password = os.environ.get("HTTP_PASSWORD")
 
 if api_key is None:
     print("OpenAI API key is not set. Please set the OPENAI_API_KEY environment variable.")
@@ -35,7 +37,7 @@ socketio = SocketIO(app, cors_allowed_origins='*')
 
 @auth.verify_password
 def verify_password(username, password):
-    if username == 'kids' and password == 'iloveschool!':
+    if username == env_username and password == env_password:
         return True
     else:
         return False
