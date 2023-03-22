@@ -2,6 +2,7 @@ import os
 import openai
 
 from flask import Flask, request, render_template
+from flask_cors import CORS, cross_origin
 from flask_socketio import SocketIO, emit
 from tenacity import (
     retry,
@@ -24,6 +25,7 @@ MODEL = 'gpt-3.5-turbo'
 
 # Create Flask app and SocketIO instance
 app = Flask(__name__)
+CORS(app)
 app.config['SECRET_KEY'] = 'secret'
 socketio = SocketIO(app)
 
