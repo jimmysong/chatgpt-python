@@ -12,9 +12,13 @@ from tenacity import (
 
 
 api_key = os.environ.get("OPENAI_API_KEY")
+socket_key = os.environ.get("SOCKET_KEY")
 
 if api_key is None:
     print("OpenAI API key is not set. Please set the OPENAI_API_KEY environment variable.")
+    exit
+if socket_key is None:
+    print("Socket key is not set. Please set the OPENAI_API_KEY environment variable.")
     exit
 
 @retry(wait=wait_random_exponential(min=1, max=60), stop=stop_after_attempt(6))
@@ -26,11 +30,12 @@ MODEL = 'gpt-3.5-turbo'
 # Create Flask app and SocketIO instance
 app = Flask(__name__)
 CORS(app)
-app.config['SECRET_KEY'] = 'secret'
+app.config['SECRET_KEY'] = socket_key
 socketio = SocketIO(app)
 
 # Define event handler for generating text
 @socketio.on('generate_text')
+@cross_origin(origin='*')
 def handle_generate_text(input_text):
     messages = [
         {"role": "system", "content": "You are an explainer for a 10-year old kid."},
